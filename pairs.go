@@ -1,5 +1,4 @@
 package main
 
-import "github.com/nsf/termbox-go"
-
-var Info = ColorPair{termbox.ColorWhite, termbox.ColorBlack}
+var Info = ColorPair{26, 249}
+var Grass = ColorPair{42, 23}

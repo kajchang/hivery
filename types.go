@@ -7,6 +7,11 @@ type OrderedPair struct {
 	y int
 }
 
+type CellBuffer struct {
+	size OrderedPair
+	cells []termbox.Cell
+}
+
 type Settings struct {
 	gameSize OrderedPair
 	terminalSize OrderedPair
