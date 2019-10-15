@@ -15,7 +15,7 @@ func RequireTerminalSize(desiredWidth, desiredHeight int) bool {
 	width, height := termbox.Size()
 	if width != desiredWidth || height != desiredHeight {
 		message := fmt.Sprintf("Terminal must be sized: (%v, %v), but terminal is sized: (%v, %v)", desiredWidth, desiredHeight, width, height)
-		Tbprint(width / 2 - len(message) / 2, height / 2, message, Info.fg, Info.bg)
+		Tbprint(width / 2 - len(message) / 2, height / 2 - 1, message, Info.fg, Info.bg)
 		return false
 	}
 	return true
@@ -42,8 +42,8 @@ func Flush(offset OrderedPair) {
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			offsetX, offsetY := x + offset.x, y + offset.y
-			gameCell := gameBuf.cells[offsetY * gameBuf.size.y + offsetX]
-			termbox.SetCell(x, y, gameCell.Ch, gameCell.Fg, gameCell.Bg)
+			cell := gameBuf.cells[offsetY * gameBuf.size.y + offsetX]
+			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
 		}
 	}
 }
