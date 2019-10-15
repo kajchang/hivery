@@ -45,6 +45,7 @@ func Game(input chan termbox.Event) bool {
 		switch event.Ch {
 			case ':':
 				CurrentInputMode = Console
+				TicksUntilExpired = 0
 				ConsoleContent = ""
 		}
 		switch CurrentInputMode {

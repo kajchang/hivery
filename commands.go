@@ -60,9 +60,11 @@ func ProcessCommand(commandString string) (string, error) {
 	args := strings.Split(commandString, " ")
 	cmd, args := args[0], args[1:]
 	command, ok := CommandMap[cmd]
-	args = append(args[:command.raw], unrollArgs(args[command.raw:])...)
-	if ok && validateArgs(args, command) {
-		return command.run(args)
+	if len(args) >= command.raw {
+		args = append(args[:command.raw], unrollArgs(args[command.raw:])...)
+		if ok && validateArgs(args, command) {
+			return command.run(args)
+		}
 	}
 	return "", Error("Command not found or invalid arguments")
 }
