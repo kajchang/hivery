@@ -25,8 +25,8 @@ func RequireTerminalSize(desiredWidth, desiredHeight int) bool {
 
 var gameBuf CellBuffer
 
-func Init(settings Settings) {
-	gameBuf = CellBuffer{settings.gameSize, make([]termbox.Cell, settings.gameSize.y * settings.gameSize.x)}
+func Init() {
+	gameBuf = CellBuffer{GameSize, make([]termbox.Cell, GameSize.y * GameSize.x)}
 }
 
 func Clear() {

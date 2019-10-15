@@ -5,6 +5,13 @@ import (
 	"math/rand"
 )
 
+var (
+	GameSize = OrderedPair{500, 500}
+	TerminalSize = OrderedPair{80, 24}
+	Camera = OrderedPair{GameSize.x / 2 - TerminalSize.x / 2, GameSize.y / 2 - TerminalSize.y / 2}
+	CurrentInputMode = FreeCamera
+)
+
 func main() {
 	err := termbox.Init()
 	termbox.SetOutputMode(termbox.Output256)
@@ -13,18 +20,11 @@ func main() {
 	}
 	defer termbox.Close()
 
-	settings := Settings{
-		gameSize: OrderedPair{500, 500},
-		terminalSize: OrderedPair{80, 24},
-	}
-	state := State{
-		camera: OrderedPair{settings.gameSize.x / 2 - settings.terminalSize.x / 2, settings.gameSize.y / 2 - settings.terminalSize.y / 2},
-		inputMode: FreeCamera,
-	}
-	Init(settings)
+	Init()
+	InitCommands()
 	for i := 0; i < 1000; i++ {
-		SetCell(rand.Intn(settings.gameSize.x), rand.Intn(settings.gameSize.y), 'w', Grass.fg, Grass.bg)
-		SetCell(rand.Intn(settings.gameSize.x), rand.Intn(settings.gameSize.y), 'g', Gold.fg, Gold.bg)
+		SetCell(rand.Intn(GameSize.x), rand.Intn(GameSize.y), 'w', Grass.fg, Grass.bg)
+		SetCell(rand.Intn(GameSize.x), rand.Intn(GameSize.y), 'g', Gold.fg, Gold.bg)
 	}
 	input := make(chan termbox.Event, 50)
 	go GatherInput(input)
@@ -32,7 +32,7 @@ func main() {
 	for {
 		_ = termbox.Clear(16, 17)
 		if ok := RequireTerminalSize(80, 24); ok {
-			if ok := Game(&settings, &state, input); !ok {
+			if ok := Game(input); !ok {
 				break
 			}
 		} else {

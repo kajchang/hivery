@@ -3,80 +3,90 @@ package main
 import (
 	"fmt"
 	"github.com/nsf/termbox-go"
-	"strings"
 	"time"
 )
 
-func processCommand(commandString string, settings *Settings, state *State) bool {
-	commandString = commandString[1:]
-	args := strings.Split(commandString, " ")
-	cmd, args := args[0], args[1:]
-	if command, ok := CommandMap[cmd]; ok {
-		if err := command.run(args, settings, state); err != nil {
-			return false
-		}
+var (
+	ConsoleContent    = ""
+	ConsoleMessage    = ""
+	ConsoleBg         termbox.Attribute
+	ConsoleFg         termbox.Attribute
+	TicksUntilExpired = 0
+)
+
+func drawHUD() {
+	Tbprint(0, 0, fmt.Sprintf("(%3d, %3d)", Camera.x, Camera.y), Info.fg, Info.bg)
+	switch CurrentInputMode {
+		case Console:
+			Tbprint(0, TerminalSize.y - 1, ConsoleContent, Info.fg, Info.bg)
+		default:
+			if TicksUntilExpired > 0 {
+				TicksUntilExpired--
+				Tbprint(0, TerminalSize.y - 1, ConsoleMessage, ConsoleFg, ConsoleBg)
+			}
 	}
-	return true
 }
 
-func drawHUD(settings Settings, state State) {
-	Tbprint(0, 0, fmt.Sprintf("(%3d, %3d)", state.camera.x, state.camera.y), Info.fg, Info.bg)
-	switch state.inputMode {
-	case Console:
-		Tbprint(0, settings.terminalSize.y - 1, state.console, Info.fg, Info.bg)
-	}
+func setConsoleMessage(message string, secondsUntilExpired int, fg, bg termbox.Attribute) {
+	ConsoleMessage = message
+	TicksUntilExpired = secondsUntilExpired * 60
+	ConsoleFg = fg
+	ConsoleBg = bg
 }
 
-func Game(settings *Settings, state *State, input chan termbox.Event) bool {
+func Game(input chan termbox.Event) bool {
 	time.Sleep(time.Second / 60)
 	for len(input) > 0 {
 		event := <- input
 		switch event.Key {
 			case termbox.KeyCtrlC: return false
-			case termbox.KeyEsc: state.inputMode = FreeCamera
+			case termbox.KeyEsc: CurrentInputMode = FreeCamera
 		}
 		switch event.Ch {
 			case ':':
-				state.inputMode = Console
-				state.console = ""
+				CurrentInputMode = Console
+				ConsoleContent = ""
 		}
-		switch state.inputMode {
+		switch CurrentInputMode {
 			case FreeCamera:
 				switch event.Key {
-					case termbox.KeyArrowLeft: state.camera.x--
-					case termbox.KeyArrowRight: state.camera.x++
-					case termbox.KeyArrowDown: state.camera.y++
-					case termbox.KeyArrowUp: state.camera.y--
+					case termbox.KeyArrowLeft: Camera.x--
+					case termbox.KeyArrowRight: Camera.x++
+					case termbox.KeyArrowDown: Camera.y++
+					case termbox.KeyArrowUp: Camera.y--
 				}
 			case Console:
 				switch event.Key {
 					case termbox.KeyDelete, termbox.KeyBackspace, termbox.KeyBackspace2:
-						if len(state.console) > 1 {
-							state.console = state.console[:len(state.console) - 1]
+						if len(ConsoleContent) > 1 {
+							ConsoleContent = ConsoleContent[:len(ConsoleContent) - 1]
 						}
 					case termbox.KeySpace:
-						state.console += " "
+						ConsoleContent += " "
 					case termbox.KeyEnter:
-						if ok := processCommand(state.console, settings, state); ok {
-							state.inputMode = FreeCamera
+						if message, err := ProcessCommand(ConsoleContent); err != nil {
+							setConsoleMessage(err.Error(), 5, Failure.fg, Failure.bg)
+						} else {
+							setConsoleMessage(message, 5, Success.fg, Success.bg)
 						}
+						CurrentInputMode = FreeCamera
 				}
 				if event.Ch != 0 {
-					state.console += string(event.Ch)
+					ConsoleContent += string(event.Ch)
 				}
 		}
 	}
-	if state.camera.x < 0 {
-		state.camera.x = 0
-	} else if state.camera.x > settings.gameSize.x - settings.terminalSize.x {
-		state.camera.x = settings.gameSize.x - settings.terminalSize.x
+	if Camera.x < 0 {
+		Camera.x = 0
+	} else if Camera.x > GameSize.x - TerminalSize.x {
+		Camera.x = GameSize.x - TerminalSize.x
 	}
-	if state.camera.y < 0 {
-		state.camera.y = 0
-	} else if state.camera.y > settings.gameSize.y - settings.terminalSize.y {
-		state.camera.y = settings.gameSize.y - settings.terminalSize.y
+	if Camera.y < 0 {
+		Camera.y = 0
+	} else if Camera.y > GameSize.y - TerminalSize.y {
+		Camera.y = GameSize.y - TerminalSize.y
 	}
-	Flush(state.camera)
-	drawHUD(*settings, *state)
+	Flush(Camera)
+	drawHUD()
 	return true
 }

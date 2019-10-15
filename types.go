@@ -8,7 +8,7 @@ type OrderedPair struct {
 }
 
 type CellBuffer struct {
-	size OrderedPair
+	size  OrderedPair
 	cells []termbox.Cell
 }
 
@@ -19,23 +19,20 @@ const (
 	Console
 )
 
-type Settings struct {
-	gameSize OrderedPair
-	terminalSize OrderedPair
-}
-
-type State struct {
-	camera OrderedPair
-	inputMode InputMode
-	console string
-}
-
 type ColorPair struct {
 	fg termbox.Attribute
 	bg termbox.Attribute
 }
 
 type Command struct {
-	run func(args []string, settings *Settings, state *State) error
+	run  func(args []string) (string, error)
 	args int
+	plus bool
+	raw  int // index to start unrolling
+}
+
+type Error string
+
+func (error Error) Error() string {
+	return string(error)
 }
