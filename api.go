@@ -23,18 +23,18 @@ func RequireTerminalSize(desiredWidth, desiredHeight int) bool {
 
 // Internal Game Buffer Management
 
-var gameBuf CellBuffer
+var GameBuffer CellBuffer
 
-func Init() {
-	gameBuf = CellBuffer{GameSize, make([]termbox.Cell, GameSize.y * GameSize.x)}
+func InitBuffer() {
+	GameBuffer = CellBuffer{GameSize, make([]termbox.Cell, GameSize.y * GameSize.x)}
 }
 
 func Clear() {
-	gameBuf.cells = make([]termbox.Cell, gameBuf.size.x * gameBuf.size.y)
+	GameBuffer.cells = make([]termbox.Cell, GameBuffer.size.x * GameBuffer.size.y)
 }
 
 func SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
-	gameBuf.cells[y * gameBuf.size.y + x] = termbox.Cell{Ch: ch, Fg: fg, Bg: bg}
+	GameBuffer.cells[y * GameBuffer.size.y + x] = termbox.Cell{Ch: ch, Fg: fg, Bg: bg}
 }
 
 func Flush(offset OrderedPair) {
@@ -42,7 +42,7 @@ func Flush(offset OrderedPair) {
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			offsetX, offsetY := x + offset.x, y + offset.y
-			cell := gameBuf.cells[offsetY * gameBuf.size.y + offsetX]
+			cell := GameBuffer.cells[offsetY * GameBuffer.size.y + offsetX]
 			termbox.SetCell(x, y, cell.Ch, cell.Fg, cell.Bg)
 		}
 	}

@@ -8,33 +8,21 @@ import (
 )
 
 var (
+	// Console State
 	ConsoleContent    = ""
 	ConsoleMessage    []string
 	ConsoleBg         termbox.Attribute
 	ConsoleFg         termbox.Attribute
 	TicksUntilExpired = 0
+	// Worker State
+	Workers           []Worker
 )
 
-func drawHUD() {
-	Tbprint(0, 0, fmt.Sprintf("(%3d, %3d)", Camera.x, Camera.y), Info.fg, Info.bg)
-	switch CurrentInputMode {
-		case Console:
-			Tbprint(0, TerminalSize.y - 1, ConsoleContent, Info.fg, Info.bg)
-		default:
-			if TicksUntilExpired > 0 {
-				TicksUntilExpired--
-				for i := 0; i < len(ConsoleMessage); i++ {
-					Tbprint(0, TerminalSize.y - len(ConsoleMessage) + i, ConsoleMessage[i], ConsoleFg, ConsoleBg)
-				}
-			}
+func InitGame() {
+	Workers = []Worker{
+		{position: middle()},
 	}
-}
-
-func setConsoleMessage(message []string, secondsUntilExpired int, fg, bg termbox.Attribute) {
-	ConsoleMessage = message
-	TicksUntilExpired = secondsUntilExpired * 60
-	ConsoleFg = fg
-	ConsoleBg = bg
+	Workers[0].SetTarget(OrderedPair{1, 1})
 }
 
 func Game(input chan termbox.Event) bool {
@@ -91,7 +79,41 @@ func Game(input chan termbox.Event) bool {
 	} else if Camera.y > GameSize.y - TerminalSize.y {
 		Camera.y = GameSize.y - TerminalSize.y
 	}
+	for i := range Workers {
+		if Workers[i].cooldown == 0 {
+			Workers[i].Move(Workers[i].Pathfinder())
+			Workers[i].Show()
+			Workers[i].SetCooldown(0.25)
+		}
+		Workers[i].Tick()
+	}
 	Flush(Camera)
 	drawHUD()
 	return true
+}
+
+func drawHUD() {
+	Tbprint(0, 0, fmt.Sprintf("(%3d, %3d)", Camera.x, Camera.y), Info.fg, Info.bg)
+	switch CurrentInputMode {
+	case Console:
+		Tbprint(0, TerminalSize.y - 1, ConsoleContent, Info.fg, Info.bg)
+	default:
+		if TicksUntilExpired > 0 {
+			TicksUntilExpired--
+			for i := 0; i < len(ConsoleMessage); i++ {
+				Tbprint(0, TerminalSize.y - len(ConsoleMessage) + i, ConsoleMessage[i], ConsoleFg, ConsoleBg)
+			}
+		}
+	}
+}
+
+func setConsoleMessage(message []string, secondsUntilExpired int, fg, bg termbox.Attribute) {
+	ConsoleMessage = message
+	TicksUntilExpired = secondsUntilExpired * 60
+	ConsoleFg = fg
+	ConsoleBg = bg
+}
+
+func middle() OrderedPair {
+	return OrderedPair{Camera.x + TerminalSize.x / 2, Camera.y + TerminalSize.y / 2}
 }

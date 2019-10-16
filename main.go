@@ -20,8 +20,9 @@ func main() {
 	}
 	defer termbox.Close()
 
-	Init()
+	InitBuffer()
 	InitCommands()
+	InitGame()
 	for i := 0; i < 1000; i++ {
 		SetCell(rand.Intn(GameSize.x), rand.Intn(GameSize.y), 'w', Grass.fg, Grass.bg)
 		SetCell(rand.Intn(GameSize.x), rand.Intn(GameSize.y), 'g', Gold.fg, Gold.bg)
