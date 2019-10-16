@@ -25,10 +25,11 @@ type ColorPair struct {
 }
 
 type Command struct {
-	run  func(args []string) (string, error)
-	args int
-	plus bool
-	raw  int // index to start unrolling
+	run   func(args []string) ([]string, error)
+	args  int
+	plus  bool
+	raw   int // index to start unrolling
+	usage string
 }
 
 type Error string

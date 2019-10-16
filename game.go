@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/nsf/termbox-go"
+	"strconv"
 	"time"
 )
 
 var (
 	ConsoleContent    = ""
-	ConsoleMessage    = ""
+	ConsoleMessage    []string
 	ConsoleBg         termbox.Attribute
 	ConsoleFg         termbox.Attribute
 	TicksUntilExpired = 0
@@ -22,12 +23,14 @@ func drawHUD() {
 		default:
 			if TicksUntilExpired > 0 {
 				TicksUntilExpired--
-				Tbprint(0, TerminalSize.y - 1, ConsoleMessage, ConsoleFg, ConsoleBg)
+				for i := 0; i < len(ConsoleMessage); i++ {
+					Tbprint(0, TerminalSize.y - len(ConsoleMessage) + i, ConsoleMessage[i], ConsoleFg, ConsoleBg)
+				}
 			}
 	}
 }
 
-func setConsoleMessage(message string, secondsUntilExpired int, fg, bg termbox.Attribute) {
+func setConsoleMessage(message []string, secondsUntilExpired int, fg, bg termbox.Attribute) {
 	ConsoleMessage = message
 	TicksUntilExpired = secondsUntilExpired * 60
 	ConsoleFg = fg
@@ -36,6 +39,7 @@ func setConsoleMessage(message string, secondsUntilExpired int, fg, bg termbox.A
 
 func Game(input chan termbox.Event) bool {
 	time.Sleep(time.Second / 60)
+	UserVariables["position"] = []string{strconv.Itoa(Camera.x), strconv.Itoa(Camera.y)}
 	for len(input) > 0 {
 		event := <- input
 		switch event.Key {
@@ -51,8 +55,8 @@ func Game(input chan termbox.Event) bool {
 		switch CurrentInputMode {
 			case FreeCamera:
 				switch event.Key {
-					case termbox.KeyArrowLeft: Camera.x--
-					case termbox.KeyArrowRight: Camera.x++
+					case termbox.KeyArrowLeft: Camera.x -= 3
+					case termbox.KeyArrowRight: Camera.x += 3
 					case termbox.KeyArrowDown: Camera.y++
 					case termbox.KeyArrowUp: Camera.y--
 				}
@@ -66,7 +70,7 @@ func Game(input chan termbox.Event) bool {
 						ConsoleContent += " "
 					case termbox.KeyEnter:
 						if message, err := ProcessCommand(ConsoleContent); err != nil {
-							setConsoleMessage(err.Error(), 5, Failure.fg, Failure.bg)
+							setConsoleMessage([]string{err.Error()}, 5, Failure.fg, Failure.bg)
 						} else {
 							setConsoleMessage(message, 5, Success.fg, Success.bg)
 						}

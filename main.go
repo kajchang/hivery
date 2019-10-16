@@ -7,7 +7,7 @@ import (
 
 var (
 	GameSize = OrderedPair{500, 500}
-	TerminalSize = OrderedPair{80, 24}
+	TerminalSize = OrderedPair{120, 36}
 	Camera = OrderedPair{GameSize.x / 2 - TerminalSize.x / 2, GameSize.y / 2 - TerminalSize.y / 2}
 	CurrentInputMode = FreeCamera
 )
@@ -31,7 +31,7 @@ func main() {
 
 	for {
 		_ = termbox.Clear(16, 17)
-		if ok := RequireTerminalSize(80, 24); ok {
+		if ok := RequireTerminalSize(TerminalSize.x, TerminalSize.y); ok {
 			if ok := Game(input); !ok {
 				break
 			}
